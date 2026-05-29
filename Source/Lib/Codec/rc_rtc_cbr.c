@@ -161,7 +161,7 @@ static int av1_estimate_frame_size(PictureControlSet* pcs, int qindex, double rc
 
     // scale to resolution
     FrameSize* frm_size = &pcs->ppcs->av1_cm->frm_size;
-    return AOMMAX(estimated_size * frm_size->frame_width * frm_size->frame_height / 512, 1);
+    return (int)AOMMAX(estimated_size * frm_size->frame_width * frm_size->frame_height / 512, 1);
 }
 
 typedef struct {
@@ -264,7 +264,7 @@ static int calc_pframe_target_size(PictureParentControlSet* ppcs) {
     }
 
     double frame_target = rc->avg_frame_bandwidth;
-    double buffer_diff  = rc->buffer_level - rc->optimal_buffer_level;
+    double buffer_diff  = (double)rc->buffer_level - rc->optimal_buffer_level;
     double one_pct_bits = 1.0 + rc->optimal_buffer_level / 100.0;
 
     // temporal dependency and mode decision modulation
@@ -287,8 +287,8 @@ static int calc_pframe_target_size(PictureParentControlSet* ppcs) {
         frame_target *= 1.0 + pct / 400;
     }
 
-    double min_frame_target = AOMMAX(rc->avg_frame_bandwidth >> 4, FRAME_OVERHEAD_BITS);
-    return AOMMAX(min_frame_target, frame_target);
+    double min_frame_target = AOMMAX((double)(rc->avg_frame_bandwidth >> 4), (double)FRAME_OVERHEAD_BITS);
+    return (int)AOMMAX(min_frame_target, frame_target);
 }
 
 #if FIX_CR_BAND_WRAPPING
@@ -447,7 +447,7 @@ static void rtc_set_rate_correction_factor(PictureParentControlSet* ppcs, double
     svt_release_mutex(rc->rc_mutex);
 }
 
-static double calculate_qindex(PictureControlSet* pcs, SequenceControlSet* scs) {
+static uint8_t calculate_qindex(PictureControlSet* pcs, SequenceControlSet* scs) {
     PictureParentControlSet* ppcs   = pcs->ppcs;
     RATE_CONTROL*            rc     = &scs->enc_ctx->rc;
     RateControlCfg*          rc_cfg = &scs->enc_ctx->rc_cfg;

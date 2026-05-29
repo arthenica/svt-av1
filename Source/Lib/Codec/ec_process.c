@@ -229,7 +229,7 @@ EbErrorType svt_aom_entropy_coding_kernel_iter(void* context) {
     svt_block_on_mutex(pcs->entropy_coding_pic_mutex);
 #if OPT_STATS_MUTEX
     // Flush locally-accumulated qindex stats (avoids per-block mutex)
-    pcs->ppcs->tot_qindex += context_ptr->tot_qindex;
+    pcs->ppcs->tot_qindex += (uint32_t)context_ptr->tot_qindex;
     pcs->ppcs->valid_qindex_area += context_ptr->valid_area;
 #endif
     pcs->ec_info[tile_idx]->entropy_coding_tile_done = true;
