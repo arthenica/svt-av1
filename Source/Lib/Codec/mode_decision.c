@@ -3398,7 +3398,36 @@ int svt_av1_allow_palette(int allow_palette, BlockSize bsize) {
 void search_palette_luma(PictureControlSet* pcs, ModeDecisionContext* ctx, PaletteInfo* palette_cand,
                          uint8_t* palette_size_array, uint32_t* tot_palette_cands);
 
+#if FTR_RTC_INTER_PALETTE
+// Per-pixel ME-residual floor below which an inter block is treated as static and inter-frame palette
+// is skipped (it cannot beat a ~0-bit zero-MV skip there). Tuned on AOM b2_scc: BD-rate is preserved
+// for any value 0-16, so a small floor cleanly removes the static-block waste.
+#define RTC_INTER_PALETTE_RES_FLOOR 4
+#endif
+
 static void inject_palette_candidates(PictureControlSet* pcs, ModeDecisionContext* ctx, uint32_t* candidate_total_cnt) {
+#if FTR_RTC_INTER_PALETTE
+    // Per-block residual-floor skip for inter-frame palette: skip the palette search where inter
+    // prediction is essentially perfect (per-pixel ME residual <= RTC_INTER_PALETTE_RES_FLOOR). Such
+    // static-screen blocks can never beat a ~0-bit zero-MV skip, so evaluating palette there is pure
+    // waste. Keeps the low-but-nonzero-residual wins (where palette helps) while making the cost track
+    // screen activity. I-slice palette (the baseline path) is unaffected.
+    if (pcs->slice_type != I_SLICE) {
+        uint32_t best_me = (uint32_t)~0;
+        if (ctx->md_me_dist != (uint32_t)~0) {
+            best_me = ctx->md_me_dist;
+        }
+        if (ctx->md_pme_dist != (uint32_t)~0 && ctx->md_pme_dist < best_me) {
+            best_me = ctx->md_pme_dist;
+        }
+        if (best_me != (uint32_t)~0) {
+            const uint32_t per_pix = best_me / (ctx->blk_geom->bwidth * ctx->blk_geom->bheight);
+            if (per_pix <= RTC_INTER_PALETTE_RES_FLOOR) {
+                return;
+            }
+        }
+    }
+#endif
     uint32_t               can_total_cnt      = *candidate_total_cnt;
     ModeDecisionCandidate* cand_array         = ctx->fast_cand_array;
     const TxSize           tx_size_uv         = av1_get_max_uv_txsize(ctx->blk_geom->bsize, 1, 1);

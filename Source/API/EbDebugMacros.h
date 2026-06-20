@@ -51,6 +51,7 @@ extern "C" {
 #endif
 #define OPT_SC_RA                   1 // optimize the SC path (scm1) for RA
 #define OPT_SC_RTC                  1 // optimize the SC path (scm1) for RTC
+#define FTR_RTC_INTER_PALETTE       1 // Palette on RTC inter-frame intra blocks (screen content, M7-M8); libaom-RT force_palette_test parity. Frame-idle + per-block residual-floor gated so the cost tracks screen activity.
 
 #define OPT_VLPD0_COST             1 // Optimize VLPD0 inter-depth partitioning
 #define OPT_VLPD0_COST_BIS         1 // Faster VLPD0 inter-depth partitioning
