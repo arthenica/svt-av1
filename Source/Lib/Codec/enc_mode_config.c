@@ -3045,10 +3045,19 @@ void svt_aom_sig_deriv_multi_processes_rtc(SequenceControlSet* scs, PictureParen
     // Set palette level
     if (sc_class5) {
 #if OPT_SC_RTC
+#if FTR_RTC_INTER_PALETTE
+        // Extend palette to inter-frame intra blocks for screen content (baseline is I-slices only),
+        // where the static text/UI of a screen-share stream lives. Frame-idle gate: enable only on
+        // inter frames with motion (norm_me_dist > 0) so a frozen screen keeps the palette cost off.
+        // The per-block residual-floor skip in inject_palette_candidates narrows it further.
+        const uint8_t inter_pal = (enc_mode <= ENC_M8 && pcs->norm_me_dist > 0) ? 7 : 0;
+#else
+        const uint8_t inter_pal = 0;
+#endif
         if (enc_mode <= ENC_M7) {
-            pcs->palette_level = is_islice ? 5 : 0;
+            pcs->palette_level = is_islice ? 5 : inter_pal;
         } else if (enc_mode <= ENC_M8) {
-            pcs->palette_level = is_islice ? 7 : 0;
+            pcs->palette_level = is_islice ? 7 : inter_pal;
         } else {
             pcs->palette_level = 0;
         }
@@ -3237,10 +3246,17 @@ void svt_aom_sig_deriv_multi_processes_rtc(SequenceControlSet* scs, PictureParen
     // Set palette level
     if (sc_class1) {
 #if OPT_SC_RTC
+#if FTR_RTC_INTER_PALETTE
+        // Inter-frame palette, scoped to M7-M8 where the candidate budget is ample; frame-idle gated
+        // (see sc_class5 path). M9+ keeps I-slice-only palette (SC tools are off there).
+        const uint8_t inter_pal = (enc_mode <= ENC_M8 && pcs->norm_me_dist > 0) ? 7 : 0;
+#else
+        const uint8_t inter_pal = 0;
+#endif
         if (enc_mode <= ENC_M7) {
-            pcs->palette_level = is_islice ? 5 : 0;
+            pcs->palette_level = is_islice ? 5 : inter_pal;
         } else if (enc_mode <= ENC_M8) {
-            pcs->palette_level = is_islice ? 6 : 0;
+            pcs->palette_level = is_islice ? 6 : inter_pal;
         } else if (enc_mode <= ENC_M10) {
             pcs->palette_level = is_islice ? 7 : 0;
         } else if (enc_mode <= ENC_M12) {
