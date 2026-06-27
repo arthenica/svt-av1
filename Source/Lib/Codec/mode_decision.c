@@ -3400,18 +3400,16 @@ void search_palette_luma(PictureControlSet* pcs, ModeDecisionContext* ctx, Palet
 
 #if FTR_RTC_INTER_PALETTE
 // Per-pixel ME-residual floor below which an inter block is treated as static and inter-frame palette
-// is skipped (it cannot beat a ~0-bit zero-MV skip there). Tuned on AOM b2_scc: BD-rate is preserved
-// for any value 0-16, so a small floor cleanly removes the static-block waste.
+// is skipped (it cannot beat a ~0-bit zero-MV skip there).
 #define RTC_INTER_PALETTE_RES_FLOOR 4
 #endif
 
 static void inject_palette_candidates(PictureControlSet* pcs, ModeDecisionContext* ctx, uint32_t* candidate_total_cnt) {
 #if FTR_RTC_INTER_PALETTE
-    // Per-block residual-floor skip for inter-frame palette: skip the palette search where inter
-    // prediction is essentially perfect (per-pixel ME residual <= RTC_INTER_PALETTE_RES_FLOOR). Such
-    // static-screen blocks can never beat a ~0-bit zero-MV skip, so evaluating palette there is pure
-    // waste. Keeps the low-but-nonzero-residual wins (where palette helps) while making the cost track
-    // screen activity. I-slice palette (the baseline path) is unaffected.
+    // Residual-floor skip: skip the palette search on inter blocks where inter prediction is
+    // essentially perfect (per-pixel ME residual <= RTC_INTER_PALETTE_RES_FLOOR), since they can't
+    // beat a ~0-bit zero-MV skip. Low-but-nonzero-residual blocks (where palette helps) still run.
+    // I-slice palette (the baseline path) is unaffected.
     if (pcs->slice_type != I_SLICE) {
         uint32_t best_me = (uint32_t)~0;
         if (ctx->md_me_dist != (uint32_t)~0) {
