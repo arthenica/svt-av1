@@ -96,7 +96,11 @@ EbErrorType svt_picture_buffer_desc_ctor_noy8b(EbPictureBufferDesc* pic_buf, con
     }
 
     // Allocate the Picture Buffers (luma & chroma)
-    EB_MALLOC_ALIGNED_ARRAY(pic_buf->buffer_alloc, alloc_sz);
+    if (alloc_sz) {
+        EB_MALLOC_ALIGNED_ARRAY(pic_buf->buffer_alloc, alloc_sz);
+    } else {
+        pic_buf->buffer_alloc = NULL;
+    }
     pic_buf->buffer_alloc_sz = alloc_sz;
     uint32_t assigned_space  = 0;
     if (pic_buf_init_data->buffer_enable_mask & PICTURE_BUFFER_DESC_Y_FLAG) {
@@ -280,7 +284,11 @@ EbErrorType svt_picture_buffer_desc_ctor(EbPictureBufferDesc* pic_buf, const EbP
     }
 
     // Allocate the Picture Buffers (luma & chroma)
-    EB_MALLOC_ALIGNED_ARRAY(pic_buf->buffer_alloc, alloc_sz);
+    if (alloc_sz) {
+        EB_MALLOC_ALIGNED_ARRAY(pic_buf->buffer_alloc, alloc_sz);
+    } else {
+        pic_buf->buffer_alloc = NULL;
+    }
     pic_buf->buffer_alloc_sz = alloc_sz;
     uint32_t assigned_space  = 0;
     if (pic_buf_init_data->buffer_enable_mask & PICTURE_BUFFER_DESC_Y_FLAG) {
