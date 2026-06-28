@@ -51,6 +51,8 @@ extern "C" {
 #endif
 #define OPT_SC_RA                   1 // optimize the SC path (scm1) for RA
 #define OPT_SC_RTC                  1 // optimize the SC path (scm1) for RTC
+#define RTC_INTRABC                 1 // Enable a light, screen-content-gated IntraBC on RTC I-slices (intra-frame-only per AV1 spec)
+#define RTC_INTRABC_PRED_FIRST      1 // Clean-room predictor-first DV early-exit + local search window for the RTC IntraBC level
 
 #define OPT_VLPD0_COST             1 // Optimize VLPD0 inter-depth partitioning
 #define OPT_VLPD0_COST_BIS         1 // Faster VLPD0 inter-depth partitioning
